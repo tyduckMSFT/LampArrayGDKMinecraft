@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -32,6 +33,13 @@ public final class LampArrayMod {
     public static final String MOD_ID = "lamparraymod";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    // Helper class that will interop with the native LampArray API
+    private static LampArrayDeviceManager m_deviceManager = null;
+
+    // Helper class that will handle game events coming from Forge.
+    private static LampArrayForgeEventHandler m_forgeEventHandler = null;
+
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     // Create a Deferred Register to hold Items which will all be registered under the "examplemod" namespace
@@ -78,6 +86,12 @@ public final class LampArrayMod {
         // Register the commonSetup method for modloading
         FMLCommonSetupEvent.getBus(modBusGroup).addListener(this::commonSetup);
 
+        // Register ourselves for server and other game events we are interested in
+        MinecraftForge.EVENT_BUS.register(this);
+
+        // Create our interop code and register its callback
+        m_deviceManager = new LampArrayDeviceManager();
+
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modBusGroup);
         // Register the Deferred Register to the mod event bus so items get registered
@@ -92,9 +106,12 @@ public final class LampArrayMod {
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
+    @SubscribeEvent
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
+
+        m_forgeEventHandler = new LampArrayForgeEventHandler();
 
         if (Config.logDirtBlock)
             LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
@@ -105,6 +122,7 @@ public final class LampArrayMod {
     }
 
     // Add the example block item to the building blocks tab
+    @SubscribeEvent
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
             event.accept(EXAMPLE_BLOCK_ITEM);
