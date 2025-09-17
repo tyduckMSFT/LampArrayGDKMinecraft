@@ -8,6 +8,7 @@ import com.sun.jna.platform.win32.COM.Unknown;
 import com.sun.jna.platform.win32.Guid;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.*;
+import org.checkerframework.checker.units.qual.A;
 
 public interface LampArrayInterop extends Library {
     LampArrayInterop INSTANCE = Native.load("LampArray.dll", LampArrayInterop.class);
@@ -68,7 +69,8 @@ public interface LampArrayInterop extends Library {
     }
 
     // Structs
-    class LampArrayColor extends Structure {
+    class LampArrayColor extends Structure
+    {
         public byte r, g, b, a;
 
         @Override
@@ -99,7 +101,8 @@ public interface LampArrayInterop extends Library {
         }
 
         // Helper methods
-        protected int callIntMethod(int vtblIndex, Object... args) {
+        protected int callIntMethod(int vtblIndex, Object... args)
+        {
             Pointer vTable = getPointer().getPointer(0);
             Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
             Object[] fullArgs = new Object[args.length + 1];
@@ -108,25 +111,48 @@ public interface LampArrayInterop extends Library {
             return (Integer) func.invoke(Integer.class, fullArgs);
         }
 
-        protected short callShortMethod(int vtblIndex) {
+        protected short callShortMethod(int vtblIndex, Object... args)
+        {
             Pointer vTable = getPointer().getPointer(0);
             Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
-            return (Short) func.invoke(Short.class, new Object[]{getPointer()});
+            Object[] fullArgs = new Object[args.length + 1];
+            fullArgs[0] = getPointer();
+            System.arraycopy(args, 0, fullArgs, 1, args.length);
+            return (Short) func.invoke(Short.class, fullArgs);
         }
 
-        protected long callLongMethod(int vtblIndex) {
+        protected long callLongMethod(int vtblIndex, Object... args)
+        {
             Pointer vTable = getPointer().getPointer(0);
             Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
-            return (Long) func.invoke(Long.class, new Object[]{getPointer()});
+            Object[] fullArgs = new Object[args.length + 1];
+            fullArgs[0] = getPointer();
+            System.arraycopy(args, 0, fullArgs, 1, args.length);
+            return (Long) func.invoke(Long.class, fullArgs);
         }
 
-        protected boolean callBooleanMethod(int vtblIndex) {
+        protected double callDoubleMethod(int vtblIndex, Object... args)
+        {
             Pointer vTable = getPointer().getPointer(0);
             Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
-            return (Boolean) func.invoke(Boolean.class, new Object[]{getPointer()});
+            Object[] fullArgs = new Object[args.length + 1];
+            fullArgs[0] = getPointer();
+            System.arraycopy(args, 0, fullArgs, 1, args.length);
+            return (Double) func.invoke(Double.class, fullArgs);
         }
 
-        protected void callVoidMethod(int vtblIndex, Object... args) {
+        protected boolean callBooleanMethod(int vtblIndex, Object... args)
+        {
+            Pointer vTable = getPointer().getPointer(0);
+            Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
+            Object[] fullArgs = new Object[args.length + 1];
+            fullArgs[0] = getPointer();
+            System.arraycopy(args, 0, fullArgs, 1, args.length);
+            return (Boolean) func.invoke(Boolean.class, fullArgs);
+        }
+
+        protected void callVoidMethod(int vtblIndex, Object... args)
+        {
             Pointer vTable = getPointer().getPointer(0);
             Function func = Function.getFunction(vTable.getPointer(vtblIndex * Native.POINTER_SIZE), Function.ALT_CONVENTION);
             Object[] fullArgs = new Object[args.length + 1];
@@ -136,7 +162,8 @@ public interface LampArrayInterop extends Library {
         }
     }
 
-    public class ILampInfo extends UnknownHelper {
+    public class ILampInfo extends UnknownHelper
+    {
         Guid.GUID IID_ILampInfo = new Guid.GUID("AE82EDD1-6B75-43CF-9BEA-F600A49A320C");
 
         // Method index constants (based on vtable layout)
@@ -167,7 +194,12 @@ public interface LampArrayInterop extends Library {
             return callIntMethod(VTBL_GET_PURPOSES);
         }
 
-        // TODO
+        public LampArrayPosition getPosition()
+        {
+            LampArrayPosition position = new LampArrayPosition();
+            callVoidMethod(VTBL_GET_POSITION, position);
+            return position;
+        }
 
         public int getRedLevelCount()
         {
@@ -189,7 +221,26 @@ public interface LampArrayInterop extends Library {
             return callIntMethod(VTBL_GET_GAIN_LEVEL_COUNT);
         }
 
-        // TODO
+        public LampArrayColor getFixedColor()
+        {
+            LampArrayColor fixedColor = new LampArrayColor();
+            if (callBooleanMethod(VTBL_GET_FIXED_COLOR, fixedColor))
+            {
+                return fixedColor;
+            }
+
+            return null;
+        }
+
+        public LampArrayColor getNearestSupportedColor(LampArrayColor desiredColor)
+        {
+            Pointer vTable = getPointer().getPointer(0);
+            Function func = Function.getFunction(vTable.getPointer(VTBL_GET_NEAREST_SUPPORTED_COLOR * Native.POINTER_SIZE), Function.ALT_CONVENTION);
+            Object[] fullArgs = new Object[2];
+            fullArgs[0] = getPointer();
+            fullArgs[1] = desiredColor;
+            return (LampArrayColor) func.invoke(LampArrayColor.class, fullArgs);
+        }
 
         public int getUpdateLatency()
         {
@@ -200,8 +251,6 @@ public interface LampArrayInterop extends Library {
         {
             return callIntMethod(VTBL_GET_SCAN_CODE);
         }
-
-        // TODO: Fill in more
     }
 
     public class ILampArray extends UnknownHelper
@@ -265,9 +314,26 @@ public interface LampArrayInterop extends Library {
             return callLongMethod(VTBL_GET_MIN_UPDATE_INTERVAL);
         }
 
+        public LampArrayPosition getBoundingBox()
+        {
+            LampArrayPosition boundingBox = new LampArrayPosition();
+            callVoidMethod(VTBL_GET_BOUNDING_BOX, boundingBox);
+            return boundingBox;
+        }
+
         public boolean getIsEnabled()
         {
             return callBooleanMethod(VTBL_GET_IS_ENABLED);
+        }
+
+        public double getBrightnessLevel()
+        {
+            return callDoubleMethod(VTBL_GET_BRIGHTNESS);
+        }
+
+        public void setBrightnessLevel(double brightnessLevel)
+        {
+            callVoidMethod(VTBL_SET_BRIGHTNESS, brightnessLevel);
         }
 
         public void setIsEnabled(boolean enabled)
@@ -280,14 +346,61 @@ public interface LampArrayInterop extends Library {
             return callBooleanMethod(VTBL_SUPPORTS_SCAN_CODES);
         }
 
-        public int getIndicesCountForPurposes(LampPurposes purposes)
+        public ILampInfo getLampInfo(int index)
         {
-            return callIntMethod(VTBL_GET_INDICES_COUNT_FOR_PURPOSES, purposes);
+            PointerByReference ref = new PointerByReference();
+            if (callIntMethod(VTBL_GET_LAMP_INFO, index, ref) == 0)
+            {
+                return new ILampInfo(ref.getValue());
+            }
+            return null;
+        }
+
+        public List<Integer> getIndicesForPurposes(LampPurposes purposes)
+        {
+            int arraySize = callIntMethod(VTBL_GET_INDICES_COUNT_FOR_PURPOSES, purposes.value);
+            if (arraySize > 0)
+            {
+                int[] indicesArray = new int[arraySize];
+                callVoidMethod(VTBL_GET_INDICES_FOR_PURPOSES, purposes.value, indicesArray.length, indicesArray);
+                return Arrays.stream(indicesArray).boxed().toList();
+            }
+
+            return new ArrayList<Integer>();
         }
 
         public void setColor(LampArrayColor color)
         {
+            // TODO
             callVoidMethod(VTBL_SET_COLOR, color);
+        }
+
+        public void setColorsForIndices(
+            int[] indices,
+            LampArrayColor[] colors) throws IllegalArgumentException
+        {
+            if (indices.length == colors.length)
+            {
+                callVoidMethod(VTBL_SET_COLORS_FOR_INDICES, indices.length, indices, colors);
+            }
+            else
+            {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        public void setColorsForScanCodes(
+            int[] scanCodes,
+            LampArrayColor[] colors) throws IllegalArgumentException
+        {
+            if (scanCodes.length == colors.length)
+            {
+                callVoidMethod(VTBL_SET_COLORS_FOR_SCAN_CODES, scanCodes.length, scanCodes, colors);
+            }
+            else
+            {
+                throw new IllegalArgumentException();
+            }
         }
 
         /*
@@ -304,11 +417,13 @@ public interface LampArrayInterop extends Library {
     }
 
     // Callback interfaces
-    interface LampArrayCallback extends Callback {
+    interface LampArrayCallback extends Callback
+    {
         void invoke(Pointer context, boolean isAttached, Pointer lampArray);
     }
 
-    interface LampArrayStatusCallback extends Callback {
+    interface LampArrayStatusCallback extends Callback
+    {
         void invoke(Pointer context, int currentStatus, int previousStatus, Pointer lampArray);
     }
 
@@ -320,13 +435,11 @@ public interface LampArrayInterop extends Library {
     int RegisterLampArrayCallback(
         LampArrayCallback callback,
         Pointer context,
-        LongByReference callbackToken
-    );
+        LongByReference callbackToken);
 
     int RegisterLampArrayStatusCallback(
         LampArrayStatusCallback callbackFunc,
         int enumerationKind,
         Pointer context,
-        LongByReference callbackToken
-    );
+        LongByReference callbackToken);
 }
