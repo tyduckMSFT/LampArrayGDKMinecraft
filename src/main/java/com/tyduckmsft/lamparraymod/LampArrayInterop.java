@@ -3,14 +3,12 @@ package com.tyduckmsft.lamparraymod;
 import java.util.*;
 
 import com.sun.jna.*;
-import com.sun.jna.platform.win32.COM.IUnknown;
 import com.sun.jna.platform.win32.COM.Unknown;
 import com.sun.jna.platform.win32.Guid;
-import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.*;
-import org.checkerframework.checker.units.qual.A;
 
-public interface LampArrayInterop extends Library {
+public interface LampArrayInterop extends Library
+{
     LampArrayInterop INSTANCE = Native.load("LampArray.dll", LampArrayInterop.class);
 
     // Enums as constants
@@ -69,13 +67,13 @@ public interface LampArrayInterop extends Library {
     }
 
     // Structs
-    class LampArrayColor extends Structure
+    public class LampArrayColor extends Structure
     {
-        public byte r, g, b, a;
+        public byte r = 0, g = 0, b = 0, a = 0;
 
-        LampArrayColor() {}
+        public LampArrayColor() {}
 
-        LampArrayColor(byte r, byte g, byte b, byte a)
+        public LampArrayColor(byte r, byte g, byte b, byte a)
         {
             this.r = r;
             this.g = g;
@@ -83,7 +81,7 @@ public interface LampArrayInterop extends Library {
             this.a = a;
         }
 
-        LampArrayColor(LampArrayColor otherColor)
+        public void set(LampArrayColor otherColor)
         {
             this.r = otherColor.r;
             this.g = otherColor.g;
@@ -92,7 +90,8 @@ public interface LampArrayInterop extends Library {
         }
 
         @Override
-        protected List<String> getFieldOrder() {
+        protected List<String> getFieldOrder()
+        {
             return List.of("r", "g", "b", "a");
         }
 
@@ -100,7 +99,7 @@ public interface LampArrayInterop extends Library {
         {
             ByReference(LampArrayColor color)
             {
-                super(color);
+                set(color);
             }
         }
 
@@ -108,7 +107,7 @@ public interface LampArrayInterop extends Library {
         {
             ByValue(LampArrayColor color)
             {
-                super(color);
+                set(color);
             }
         }
     }

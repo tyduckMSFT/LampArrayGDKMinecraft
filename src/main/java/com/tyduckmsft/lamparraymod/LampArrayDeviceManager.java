@@ -1,10 +1,8 @@
 package com.tyduckmsft.lamparraymod;
 
 import com.sun.jna.*;
-import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -62,6 +60,7 @@ public class LampArrayDeviceManager implements AutoCloseable
 
                 LampArrayInterop.ILampArray lampArray = new LampArrayInterop.ILampArray(lampArrayPtr);
 
+                /*
                 int lampCount = lampArray.getLampCount();
                 LampArrayInterop.LampArrayPosition boundingBox = lampArray.getBoundingBox();
                 System.out.println("LampArray Callback: count=" + s_lampArrays.size()
@@ -75,16 +74,30 @@ public class LampArrayDeviceManager implements AutoCloseable
                         + ", y=" + boundingBox.yInMeters
                         + ", z=" + boundingBox.zInMeters + "]");
 
-                /*
-                Integer[] indices = new Integer[lampCount];
+                int[] indices = new int[lampCount];
+                int[] scanCodes = new int[lampCount];
+
                 LampArrayInterop.LampArrayColor colors[] = (LampArrayInterop.LampArrayColor[]) new LampArrayInterop.LampArrayColor().toArray(lampCount);
 
                 for (int i = 0; i < lampCount; i++)
                 {
+                    LampArrayInterop.ILampInfo lampInfo = lampArray.getLampInfo(i);
                     indices[i] = i;
-                    colors[i] = redColor;
+
+                    if (lampArray.supportsScanCodes())
+                    {
+                        scanCodes[i] = lampInfo.getScanCode();
+                        colors[i].set(LampArrayColorConstants.blue);
+                    }
+                    else
+                    {
+                        scanCodes[i] = KeyboardScanCode.SC_INVALID.getCode();
+                        colors[i].set(LampArrayColorConstants.red);
+                    }
                 }
-                *?
+
+                // lampArray.setColorsForIndices(indices, colors);
+                lampArray.setColorsForScanCodes(scanCodes, colors);
                  */
 
                 LampArrayInterop.ILampArray foundLampArray = null;
@@ -105,7 +118,7 @@ public class LampArrayDeviceManager implements AutoCloseable
                     lampArray.AddRef();
                     s_lampArrays.add(lampArray);
 
-                    lampArray.setColor(ColorConstants.minecraftGreen);
+                    // lampArray.setColor(ColorConstants.minecraftGreen);
                 }
                 else if (!isConnected && (foundLampArray != null))
                 {

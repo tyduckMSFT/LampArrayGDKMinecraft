@@ -28,7 +28,8 @@ import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(LampArrayMod.MOD_ID)
-public final class LampArrayMod {
+public final class LampArrayMod
+{
     // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "lamparraymod";
     // Directly reference a slf4j logger
@@ -46,6 +47,8 @@ public final class LampArrayMod {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+
+    // public static final DeferredRegister<Biome> BIOMES = DeferredRegister.create(Registries.BIOME, MOD_ID);
 
     // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
     public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block",
@@ -80,6 +83,8 @@ public final class LampArrayMod {
                 output.accept(EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
             }).build());
 
+//    public static final RegistryObject<Bio>
+
     public LampArrayMod(FMLJavaModLoadingContext context) {
         var modBusGroup = context.getModBusGroup();
 
@@ -111,7 +116,7 @@ public final class LampArrayMod {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
 
-        m_forgeEventHandler = new LampArrayForgeEventHandler();
+        m_forgeEventHandler = new LampArrayForgeEventHandler(m_deviceManager);
 
         if (Config.logDirtBlock)
             LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
@@ -127,6 +132,10 @@ public final class LampArrayMod {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
             event.accept(EXAMPLE_BLOCK_ITEM);
     }
+
+//    @SubscribeEvent
+//    private static void onBiomeLoading(Biome event) {}
+
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
