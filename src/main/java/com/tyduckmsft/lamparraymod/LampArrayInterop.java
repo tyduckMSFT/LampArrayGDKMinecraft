@@ -73,12 +73,44 @@ public interface LampArrayInterop extends Library {
     {
         public byte r, g, b, a;
 
+        LampArrayColor() {}
+
+        LampArrayColor(byte r, byte g, byte b, byte a)
+        {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
+
+        LampArrayColor(LampArrayColor otherColor)
+        {
+            this.r = otherColor.r;
+            this.g = otherColor.g;
+            this.b = otherColor.b;
+            this.a = otherColor.a;
+        }
+
         @Override
         protected List<String> getFieldOrder() {
             return List.of("r", "g", "b", "a");
         }
 
-        public static class ByReference extends LampArrayColor implements Structure.ByReference {}
+        public static class ByReference extends LampArrayColor implements Structure.ByReference
+        {
+            ByReference(LampArrayColor color)
+            {
+                super(color);
+            }
+        }
+
+        public static class ByValue extends LampArrayColor implements Structure.ByValue
+        {
+            ByValue(LampArrayColor color)
+            {
+                super(color);
+            }
+        }
     }
 
     class LampArrayPosition extends Structure {
@@ -238,7 +270,7 @@ public interface LampArrayInterop extends Library {
             Function func = Function.getFunction(vTable.getPointer(VTBL_GET_NEAREST_SUPPORTED_COLOR * Native.POINTER_SIZE), Function.ALT_CONVENTION);
             Object[] fullArgs = new Object[2];
             fullArgs[0] = getPointer();
-            fullArgs[1] = desiredColor;
+            fullArgs[1] = new LampArrayColor.ByValue(desiredColor);
             return (LampArrayColor) func.invoke(LampArrayColor.class, fullArgs);
         }
 
@@ -371,8 +403,7 @@ public interface LampArrayInterop extends Library {
 
         public void setColor(LampArrayColor color)
         {
-            // TODO
-            callVoidMethod(VTBL_SET_COLOR, color);
+            callVoidMethod(VTBL_SET_COLOR, new LampArrayColor.ByValue(color));
         }
 
         public void setColorsForIndices(

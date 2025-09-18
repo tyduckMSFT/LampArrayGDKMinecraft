@@ -4,6 +4,7 @@ import com.sun.jna.*;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -60,9 +61,11 @@ public class LampArrayDeviceManager implements AutoCloseable
                 s_lampArraysLock.lock();
 
                 LampArrayInterop.ILampArray lampArray = new LampArrayInterop.ILampArray(lampArrayPtr);
+
                 int lampCount = lampArray.getLampCount();
                 LampArrayInterop.LampArrayPosition boundingBox = lampArray.getBoundingBox();
-                System.out.println("LampArray Callback: kind=" + lampArray.getKind()
+                System.out.println("LampArray Callback: count=" + s_lampArrays.size()
+                        + ", kind=" + lampArray.getKind()
                         + ", lampCount=" + lampCount
                         + ", vendorId=0x" + Integer.toHexString(lampArray.getVendorId())
                         + ", productId=0x" + Integer.toHexString(lampArray.getProductId())
@@ -72,62 +75,44 @@ public class LampArrayDeviceManager implements AutoCloseable
                         + ", y=" + boundingBox.yInMeters
                         + ", z=" + boundingBox.zInMeters + "]");
 
-                for (var value : LampArrayInterop.LampPurposes.values())
-                {
-                     // TODO: Validate this
-                     System.out.println("Lamp index count for purposes " + value.toString() + ": " + lampArray.getIndicesForPurposes(value).size());
-                }
+                /*
+                Integer[] indices = new Integer[lampCount];
+                LampArrayInterop.LampArrayColor colors[] = (LampArrayInterop.LampArrayColor[]) new LampArrayInterop.LampArrayColor().toArray(lampCount);
 
                 for (int i = 0; i < lampCount; i++)
                 {
-                    LampArrayInterop.ILampInfo lampInfo = lampArray.getLampInfo(i);
-                    if (lampInfo != null)
+                    indices[i] = i;
+                    colors[i] = redColor;
+                }
+                *?
+                 */
+
+                LampArrayInterop.ILampArray foundLampArray = null;
+                for (LampArrayInterop.ILampArray attachedLampArray : s_lampArrays)
+                {
+                    var myPointer = attachedLampArray.getPointer();
+                    if (myPointer.equals(lampArrayPtr))
                     {
-                        System.out.println("Lamp found: index=" + Integer.toString(lampInfo.getIndex())
-                            + ", purposes=" + lampInfo.getPurposes());
+                        foundLampArray = attachedLampArray;
+                        break;
                     }
                 }
-                /*
-        public boolean getIsEnabled()
-        {
-            return callBooleanMethod(VTBL_GET_IS_ENABLED);
-        }
 
-        public double getBrightnessLevel()
-        {
-            return callDoubleMethod(VTBL_GET_BRIGHTNESS);
-        }
-
-        public void setBrightnessLevel(double brightnessLevel)
-        {
-            callVoidMethod(VTBL_SET_BRIGHTNESS, brightnessLevel);
-        }
-
-        public void setIsEnabled(boolean enabled)
-        {
-            callVoidMethod(VTBL_SET_IS_ENABLED, enabled);
-        }
-
-        public void setColor(LampArrayColor color)
-        {
-            callVoidMethod(VTBL_SET_COLOR, color);
-        }
-         */
-                if (wasConnected != isConnected)
+                if (isConnected && (foundLampArray == null))
                 {
-                    if (isConnected)
-                    {
-                        System.out.println("LampArray Added: kind=" + lampArray.getKind() + ", lampCount=" + lampArray.getLampCount());
-                        s_lampArrays.add(lampArray);
+                    System.out.println("LampArray Added: kind=" + lampArray.getKind() + ", lampCount=" + lampArray.getLampCount());
 
-                        LampArrayInterop.LampArrayColor redColor = new LampArrayInterop.LampArrayColor();
-                        lampArray.setColor(redColor);
-                    }
-                    else
-                    {
-                        System.out.println("LampArray Removed: kind=" + lampArray.getKind() + ", lampCount=" + lampArray.getLampCount());
-                        s_lampArrays.remove(lampArray);
-                    }
+                    lampArray.AddRef();
+                    s_lampArrays.add(lampArray);
+
+                    lampArray.setColor(ColorConstants.minecraftGreen);
+                }
+                else if (!isConnected && (foundLampArray != null))
+                {
+                    System.out.println("LampArray Removed: kind=" + lampArray.getKind() + ", lampCount=" + lampArray.getLampCount());
+
+                    s_lampArrays.remove(foundLampArray);
+                    lampArray.Release();
                 }
             }
             catch (Exception e)
