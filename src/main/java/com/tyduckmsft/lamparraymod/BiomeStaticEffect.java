@@ -27,18 +27,30 @@ public class BiomeStaticEffect extends StaticEffect
             if (lampArray.supportsScanCodes())
             {
                 var scanCode = lampArray.getLampInfo(i).getScanCode();
-                /*
-                if (Arrays.asList(s_navigationKeys).contains((KeyboardScanCode) scanCode))
+                boolean colorApplied = false;
+                for (KeyboardScanCode navigationKey : s_navigationKeys)
                 {
-                    m_lampColors[i].set(navigationColor);
+                    if (scanCode == navigationKey.getCode())
+                    {
+                        m_lampColors[i].set(navigationColor);
+                        colorApplied = true;
+                        break;
+                    }
                 }
-                else if (Arrays.asList(s_tertiaryKeys).contains(scanCode))
+                if (!colorApplied)
                 {
-                    m_lampColors[i].set(tertiaryColor);
+                    for (KeyboardScanCode sTertiaryKey : s_tertiaryKeys)
+                    {
+                        if (scanCode == sTertiaryKey.getCode())
+                        {
+                            m_lampColors[i].set(tertiaryColor);
+                            colorApplied = true;
+                            break;
+                        }
+                    }
                 }
-                else
 
-                 */
+                if (!colorApplied)
                 {
                     m_lampColors[i].set(backgroundColor);
                 }

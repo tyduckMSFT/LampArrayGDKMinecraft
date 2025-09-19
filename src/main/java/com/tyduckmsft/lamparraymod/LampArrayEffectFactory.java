@@ -8,7 +8,7 @@ public class LampArrayEffectFactory
     {
         return switch (effectType)
         {
-            case Idle -> new StaticEffect(lampArray, Long.MAX_VALUE);
+            case Idle -> new IdleStaticEffect(lampArray, Long.MAX_VALUE);
             case Biome ->
                     new BiomeStaticEffect(lampArray, LampArrayColorConstants.green, LampArrayColorConstants.red, LampArrayColorConstants.white, Long.MAX_VALUE);
             case Damage -> new BlinkEffect(lampArray);

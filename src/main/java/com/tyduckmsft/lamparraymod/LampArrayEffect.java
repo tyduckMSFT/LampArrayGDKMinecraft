@@ -56,7 +56,6 @@ public abstract class LampArrayEffect implements AutoCloseable
         m_lampColors = (LampArrayInterop.LampArrayColor[]) new LampArrayInterop.LampArrayColor().toArray(m_lampIndices.length);
     }
 
-
     @Override
     public void close()
     {
@@ -115,6 +114,3 @@ public abstract class LampArrayEffect implements AutoCloseable
         m_lastUpdateTimeMilliseconds = System.currentTimeMillis();
     }
 };
-
-;
-

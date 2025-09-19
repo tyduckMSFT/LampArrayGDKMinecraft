@@ -194,44 +194,17 @@ public class LampArrayDeviceManager implements AutoCloseable
             long currentTimeMilliseconds = System.currentTimeMillis();
             System.out.println("Current time loop start: " + currentTimeMilliseconds);
 
-            if (s_effectTypeDirty)
-            {
-                // TODO: Update current effect based on this
-                MinecraftEffectState.EffectType effectType = s_effectType;
-                s_effectTypeDirty = false;
-            }
-
             Iterator<LampArrayEffectContext> effectContextIterator = s_lampArrays.iterator();
             while (effectContextIterator.hasNext())
             {
                 // TODO: Create the effect for the current game mode
                 LampArrayEffectContext effectContext = effectContextIterator.next();
-                if (effectContext.effect == null)
+                boolean shouldCreateEffect = (effectContext.effect == null) || s_effectTypeDirty;
+                if (shouldCreateEffect)
                 {
-                    int[] indices = new int[effectContext.lampArray.getLampCount()];
-                    LampArrayInterop.LampArrayColor[] colors = (LampArrayInterop.LampArrayColor[]) new LampArrayInterop.LampArrayColor().toArray(indices.length);
-                    for (int i = 0; i < colors.length; i++)
-                    {
-                        indices[i] = i;
-                        if ((i % 2) == 0)
-                        {
-                            colors[i].set(LampArrayColorConstants.blue);
-                        }
-                        else
-                        {
-                            colors[i].set(LampArrayColorConstants.red);
-                        }
-                    }
-
                     effectContext.effect = s_effectFactory.CreateEffect(
-                        MinecraftEffectState.EffectType.Idle,
+                        s_effectType,
                         effectContext.lampArray);
-
-                    effectContext.effect = new StaticEffect(
-                        effectContext.lampArray,
-                        colors,
-                        indices,
-                        5000);
                 }
 
                 long dueTime = effectContext.effect.updateLamps(currentTimeMilliseconds);
@@ -251,12 +224,13 @@ public class LampArrayDeviceManager implements AutoCloseable
 
                 if (effectContext.effect.isCompleted())
                 {
-                    // Remove it from the list
                     System.out.println("Completed effect being removed.");
                     effectContext.effect.stop();
                     effectContext.effect = null;
                 }
             }
+
+            s_effectTypeDirty = false;
         }
         catch (Exception e)
         {
@@ -300,7 +274,6 @@ public class LampArrayDeviceManager implements AutoCloseable
         System.out.println("Scheduling next loop in " + schedulerDelayMilliseconds + " ms.");
         s_scheduler.schedule(runnable, schedulerDelayMilliseconds, TimeUnit.MILLISECONDS);
     }
-
 
     public void updateEffectType(MinecraftEffectState.EffectType effectType)
     {

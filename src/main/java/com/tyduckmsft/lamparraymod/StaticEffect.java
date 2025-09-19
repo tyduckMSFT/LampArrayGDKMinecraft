@@ -33,10 +33,7 @@ public class StaticEffect extends LampArrayEffect
             throw new IllegalArgumentException();
         }
 
-        for (int i = 0; i < colors.length; i++)
-        {
-            m_lampColors[i].set(colors[i]);
-        }
+        System.arraycopy(colors, 0, m_lampColors, 0, colors.length);
 
         m_isDirty = true;
         m_effectDurationMilliseconds = effectDurationMs;
@@ -58,7 +55,10 @@ public class StaticEffect extends LampArrayEffect
 
     public void stop()
     {
-        Arrays.fill(m_lampColors, LampArrayColorConstants.black);
+        for (int i = 0; i < m_lampColors.length; i++)
+        {
+            m_lampColors[i].set(LampArrayColorConstants.black);
+        }
 
         m_isDirty = true;
         sendLampUpdate();

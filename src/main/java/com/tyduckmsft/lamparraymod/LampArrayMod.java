@@ -47,9 +47,6 @@ public final class LampArrayMod
     {
         var modBusGroup = context.getModBusGroup();
 
-        // Register the commonSetup method for modloading
-        FMLCommonSetupEvent.getBus(modBusGroup).addListener(this::commonSetup);
-
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -64,12 +61,14 @@ public final class LampArrayMod
     public void onWorldLoaded(LevelEvent.Load event)
     {
         System.out.println("World Loaded!");
+        m_deviceManager.updateEffectType(MinecraftEffectState.EffectType.Biome);
     }
 
     @SubscribeEvent
     public void onWorldUnloaded(LevelEvent.Unload event)
     {
         System.out.println("World Unloaded!");
+        m_deviceManager.updateEffectType(MinecraftEffectState.EffectType.Idle);
     }
 
     @SubscribeEvent
@@ -98,12 +97,12 @@ public final class LampArrayMod
         if (event.player.isInWater() && !m_gameState.playerInWater)
         {
             System.out.println("Entered the water.");
-            // TODO: Send event
+            m_deviceManager.updateEffectType(MinecraftEffectState.EffectType.Underwater);
         }
         else if (!event.player.isInWater() && m_gameState.playerInWater)
         {
             System.out.println("Left the water.");
-            // TODO: Send event
+            m_deviceManager.updateEffectType(MinecraftEffectState.EffectType.Biome);
         }
 
         var position = event.player.blockPosition();
@@ -119,15 +118,12 @@ public final class LampArrayMod
 
 //    @SubscribeEvent
 //    private static void onBiomeLoading(Biome event) {}
-
-
+    
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
+    public static class ClientModEvents {
         @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
+        public static void onClientSetup(FMLClientSetupEvent event) {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
