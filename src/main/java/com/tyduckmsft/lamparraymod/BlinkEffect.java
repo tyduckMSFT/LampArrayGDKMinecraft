@@ -55,48 +55,57 @@ public class BlinkEffect extends LampArrayEffect
             final float attackProgress = (float)timeSinceRepetitionStart / (float)m_attackDurationMilliseconds;
             LampArrayInterop.LampArrayColor newColor = new LampArrayInterop.LampArrayColor();
 
-            newColor.r = (byte)(((float)attackProgress / (float)repetitionProgress) * m_color.r);
-            newColor.g = (byte)(((float)attackProgress / (float)repetitionProgress) * m_color.g);
-            newColor.b = (byte)(((float)attackProgress / (float)repetitionProgress) * m_color.b);
-            newColor.a = (byte)(((float)attackProgress / (float)repetitionProgress) * m_color.a);
+            newColor.r = scaleComponent(m_color.r, attackProgress);
+            newColor.g = scaleComponent(m_color.g, attackProgress);
+            newColor.b = scaleComponent(m_color.b, attackProgress);
+            newColor.a = scaleComponent(m_color.a, attackProgress);
 
-            Arrays.fill(m_lampColors, newColor);
-            return Math.min(s_defaultRefreshRate, repetitionProgress - timeSinceRepetitionStart);
+            for (LampArrayInterop.LampArrayColor lampColor : m_lampColors) {
+                lampColor.set(newColor);
+            }
+
+            return Math.min(m_lastRepetitionStartTime + repetitionProgress, currentTimeMilliseconds + s_defaultRefreshRate);
         }
 
         repetitionProgress = OverflowSafeAdd(repetitionProgress, m_sustainDurationMilliseconds);
         boolean inSustainWindow = (repetitionProgress > timeSinceRepetitionStart);
         if (inSustainWindow)
         {
-            for (int i = 0; i < lampCount; i++)
-            {
-                m_lampColors[i].set(m_color);
+            for (LampArrayInterop.LampArrayColor lampColor : m_lampColors) {
+                lampColor.set(m_color);
             }
 
-            System.out.println("Sustain");
-            return repetitionProgress - currentTimeMilliseconds;
+            return m_lastRepetitionStartTime + repetitionProgress;
         }
 
         repetitionProgress = OverflowSafeAdd(repetitionProgress, m_decayDurationMilliseconds);
         boolean inDecayWindow = (repetitionProgress > timeSinceRepetitionStart);
         if (inDecayWindow)
         {
-            // TODO
-            System.out.println("Decay");
-            return s_defaultRefreshRate;
+            final float decayProgress = (float)(timeSinceRepetitionStart - m_attackDurationMilliseconds - m_sustainDurationMilliseconds) / (float)m_decayDurationMilliseconds;
+            LampArrayInterop.LampArrayColor newColor = new LampArrayInterop.LampArrayColor();
+
+            newColor.r = scaleComponent(m_color.r, ((float)1.0 - decayProgress));
+            newColor.g = scaleComponent(m_color.g, ((float)1.0 - decayProgress));
+            newColor.b = scaleComponent(m_color.b, ((float)1.0 - decayProgress));
+            newColor.a = scaleComponent(m_color.a, ((float)1.0 - decayProgress));
+
+            for (LampArrayInterop.LampArrayColor lampColor : m_lampColors) {
+                lampColor.set(newColor);
+            }
+
+            return Math.min(m_lastRepetitionStartTime + repetitionProgress, currentTimeMilliseconds + s_defaultRefreshRate);
         }
 
         repetitionProgress = OverflowSafeAdd(repetitionProgress, m_repetitionDelayMilliseconds);
         boolean inDelayWindow = (repetitionProgress > timeSinceRepetitionStart);
         if (inDelayWindow)
         {
-            for (int i = 0; i < lampCount; i++)
-            {
-                m_lampColors[i].set(LampArrayColorConstants.black);
+            for (LampArrayInterop.LampArrayColor lampColor : m_lampColors) {
+                lampColor.set(LampArrayColorConstants.black);
             }
 
-            System.out.println("RepDelay");
-            return repetitionProgress - timeSinceRepetitionStart;
+            return m_lastRepetitionStartTime + repetitionProgress;
         }
 
         // We have finished the current occurrence of this effect. Calculate whether we need another.

@@ -3,7 +3,7 @@ package com.tyduckmsft.lamparraymod;
 public class LampArrayEffectFactory
 {
     public LampArrayEffect CreateEffect(
-            MinecraftEffectState.EffectType effectType,
+            MinecraftLightingEffectState effectType,
             LampArrayInterop.ILampArray lampArray)
     {
         return switch (effectType)

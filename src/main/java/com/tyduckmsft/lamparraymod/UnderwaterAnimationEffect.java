@@ -35,36 +35,24 @@ public class UnderwaterAnimationEffect extends AnimationEffect
     public void updateLampsImpl(long currentTimeMilliseconds)
     {
         m_isDirty = true;
-        for (int i = 0; i < m_blueValues.length; i++)
-        {
-            if (m_blueValues[i] >= 0xFF)
-            {
+        for (int i = 0; i < m_blueValues.length; i++) {
+            if (m_blueValues[i] >= 0xFF) {
                 m_blueValuesDescending[i] = true;
                 m_blueValues[i] = 0xFF;
 
-            }
-            else if (m_blueValues[i] <= 0)
-            {
+            } else if (m_blueValues[i] <= 0) {
                 m_blueValuesDescending[i] = false;
                 m_blueValues[i] = 0;
             }
 
-            if (m_blueValuesDescending[i])
-            {
-                m_blueValues[i] -= 2;
-            }
-            else
-            {
-                m_blueValues[i] += 2;
+            if (m_blueValuesDescending[i]) {
+                m_blueValues[i] = Math.max(0, m_blueValues[i] - 2);
+            } else {
+                m_blueValues[i] = Math.min(0xFF, m_blueValues[i] + 2);
             }
 
             m_lampColors[i].b = (byte) m_blueValues[i];
             // m_lampColors[i].g = (byte) (m_blueValues[i] / m_greenOffsets[i]);
-        }
-
-        if ((m_effectStartTimeMilliseconds + m_effectDurationMilliseconds) < currentTimeMilliseconds)
-        {
-            // m_isCompleted = true;
         }
     }
 }

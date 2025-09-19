@@ -61,7 +61,7 @@ public class LampArrayDeviceManager implements AutoCloseable
     private static LampArrayEffectFactory s_effectFactory = new LampArrayEffectFactory();
 
     private static boolean s_effectTypeDirty = true;
-    private static MinecraftEffectState.EffectType s_effectType = MinecraftEffectState.EffectType.Idle;
+    private static MinecraftLightingEffectState s_effectType = MinecraftLightingEffectState.Idle;
 
     private static LampArrayInterop.LampArrayStatusCallback OnLampArrayStatusChanged = new LampArrayInterop.LampArrayStatusCallback()
     {
@@ -184,15 +184,14 @@ public class LampArrayDeviceManager implements AutoCloseable
     // Returns the number of milliseconds to wait before performing the next effect update.
     public static void updateEffects()
     {
-        System.out.println("UpdateEffects loop");
-
+        // System.out.println("UpdateEffects loop");
         long nextDueTime = Long.MAX_VALUE;
 
         try
         {
             s_lampArraysLock.lock();
             long currentTimeMilliseconds = System.currentTimeMillis();
-            System.out.println("Current time loop start: " + currentTimeMilliseconds);
+            // System.out.println("Current time loop start: " + currentTimeMilliseconds);
 
             Iterator<LampArrayEffectContext> effectContextIterator = s_lampArrays.iterator();
             while (effectContextIterator.hasNext())
@@ -202,20 +201,24 @@ public class LampArrayDeviceManager implements AutoCloseable
                 boolean shouldCreateEffect = (effectContext.effect == null) || s_effectTypeDirty;
                 if (shouldCreateEffect)
                 {
+                    if (effectContext.effect != null)
+                    {
+                        effectContext.effect.stop();
+                    }
 
-                    /*
                     effectContext.effect = new BlinkEffect(
-                            effectContext.lampArray,
-                            LampArrayColorConstants.red,
-                            10000,
-                            5000,
-                            10000,
-                            5000,
-                            3);
-                    */
+                        effectContext.lampArray,
+                        LampArrayColorConstants.red,
+                        2000,
+                        2000,
+                        2000,
+                        2000,
+                        3);
+                    /*
                     effectContext.effect = s_effectFactory.CreateEffect(
                         s_effectType,
                         effectContext.lampArray);
+                     */
                 }
 
                 long dueTime = effectContext.effect.updateLamps(currentTimeMilliseconds);
@@ -235,7 +238,7 @@ public class LampArrayDeviceManager implements AutoCloseable
 
                 if (effectContext.effect.isCompleted())
                 {
-                    System.out.println("Completed effect being removed.");
+                    // System.out.println("Completed effect being removed.");
                     effectContext.effect.stop();
                     effectContext.effect = null;
                 }
@@ -245,13 +248,13 @@ public class LampArrayDeviceManager implements AutoCloseable
         }
         catch (Exception e)
         {
-            System.out.println(e.toString());
+            System.out.println("LampArrayDeviceManager effect loop threw " + e.toString());
         }
         finally
         {
             long postLoopIterationTime = System.currentTimeMillis();
-            System.out.println("Post loop time ms: " + postLoopIterationTime);
-            System.out.println("Next due time ms: " + nextDueTime);
+            // System.out.println("Post loop time ms: " + postLoopIterationTime);
+            // System.out.println("Next due time ms: " + nextDueTime);
 
             long schedulerInterval = nextDueTime - postLoopIterationTime;
             if (schedulerInterval < 0)
@@ -282,15 +285,22 @@ public class LampArrayDeviceManager implements AutoCloseable
             s_scheduledTask = null;
         }
 
-        System.out.println("Scheduling next loop in " + schedulerDelayMilliseconds + " ms.");
+        // System.out.println("Scheduling next loop in " + schedulerDelayMilliseconds + " ms.");
         s_scheduler.schedule(runnable, schedulerDelayMilliseconds, TimeUnit.MILLISECONDS);
     }
 
-    public void updateEffectType(MinecraftEffectState.EffectType effectType)
+    public void updateEffectType(MinecraftLightingEffectState effectType)
     {
-        s_effectType = effectType;
-        s_effectTypeDirty = true;
+        try
+        {
+            s_effectType = effectType;
+            s_effectTypeDirty = true;
 
-        scheduleEffectUpdate(0);
+            scheduleEffectUpdate(0);
+        }
+        catch (Exception e)
+        {
+            System.out.println("LampArrayDeviceManager::updateEffectType threw " + e.toString());
+        }
     }
 }

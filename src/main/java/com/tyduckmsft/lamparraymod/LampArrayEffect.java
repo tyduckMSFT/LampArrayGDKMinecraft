@@ -104,6 +104,13 @@ public abstract class LampArrayEffect implements AutoCloseable
         }
     }
 
+    public static byte scaleComponent(byte value, float factor) {
+        int unsigned = Byte.toUnsignedInt(value); // Convert to 0–255
+        int scaled = Math.round(unsigned * factor);
+        int clamped = Math.max(0, Math.min(scaled, 255));
+        return (byte) clamped;
+    }
+
     protected void updateTimestamps()
     {
         if (m_effectStartTimeMilliseconds == 0)
