@@ -202,6 +202,17 @@ public class LampArrayDeviceManager implements AutoCloseable
                 boolean shouldCreateEffect = (effectContext.effect == null) || s_effectTypeDirty;
                 if (shouldCreateEffect)
                 {
+
+                    /*
+                    effectContext.effect = new BlinkEffect(
+                            effectContext.lampArray,
+                            LampArrayColorConstants.red,
+                            10000,
+                            5000,
+                            10000,
+                            5000,
+                            3);
+                    */
                     effectContext.effect = s_effectFactory.CreateEffect(
                         s_effectType,
                         effectContext.lampArray);

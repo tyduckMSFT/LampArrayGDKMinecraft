@@ -1,6 +1,11 @@
 1.21.x Changelog
 58.1
 ====
+ - 58.1.4 [1.21.8] Deprecate global `IExtensibleEnum` support (#10662)
+          This is intended for use with Minecraft classes only. Mod devs can support extending enums through other, more efficient means, such as converting their enum to a record and having static final fields of instances that correspond to each enum value.
+ - 58.1.3 Fix alpha channel of creative mode tab title color (#10661)
+ - 58.1.2 Deprecate JS CoreMods, remove Forge's usages of them (#10659)
+ - 58.1.1 Replace Blocks.FARMLAND checks with instanceof FarmBlock (#10647)
  - 58.1.0 1.21.8 RB 1
 
 58.0
