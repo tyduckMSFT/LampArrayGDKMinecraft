@@ -9,6 +9,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -95,7 +96,16 @@ public final class LampArrayMod {
         var player = Minecraft.getInstance().player;
         if ((player != null) && (event.getEntity().getName().equals(player.getName())))
         {
-            System.out.println("Player died.");
+            m_deviceManager.updateEffectType(MinecraftLightingEffectState.Death);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerClone(PlayerEvent.Clone event)
+    {
+        if (event.isWasDeath())
+        {
+            m_deviceManager.updateEffectType(MinecraftLightingEffectState.Biome);
         }
     }
 

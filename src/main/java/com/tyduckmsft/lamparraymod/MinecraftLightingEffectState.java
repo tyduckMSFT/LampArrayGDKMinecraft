@@ -5,5 +5,6 @@ public enum MinecraftLightingEffectState
     Idle,
     Biome,
     Damage,
+    Death,
     Underwater
 };

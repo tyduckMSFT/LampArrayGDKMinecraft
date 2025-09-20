@@ -24,6 +24,14 @@ public class LampArrayEffectFactory
                     500,
                     100,
                     3);
+            case Death -> new BlinkEffect(
+                    lampArray,
+                    LampArrayColorConstants.darkRed,
+                    1000,
+                    Long.MAX_VALUE,
+                    Long.MAX_VALUE,
+                    0,
+                    1);
             case Underwater -> new UnderwaterAnimationEffect(
                     lampArray,
                     33,

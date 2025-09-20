@@ -206,6 +206,7 @@ public class LampArrayDeviceManager implements AutoCloseable
                         effectContext.effect.stop();
                     }
 
+                    /*
                     effectContext.effect = new BlinkEffect(
                         effectContext.lampArray,
                         LampArrayColorConstants.red,
@@ -214,11 +215,10 @@ public class LampArrayDeviceManager implements AutoCloseable
                         2000,
                         2000,
                         3);
-                    /*
+                    */
                     effectContext.effect = s_effectFactory.CreateEffect(
                         s_effectType,
                         effectContext.lampArray);
-                     */
                 }
 
                 long dueTime = effectContext.effect.updateLamps(currentTimeMilliseconds);
