@@ -61,6 +61,7 @@ public class LampArrayDeviceManager implements AutoCloseable
     private static LampArrayEffectFactory s_effectFactory = new LampArrayEffectFactory();
 
     private static boolean s_effectTypeDirty = true;
+    private static MinecraftLightingEffectState s_effectTypePreemptive = MinecraftLightingEffectState.None;
     private static MinecraftLightingEffectState s_effectType = MinecraftLightingEffectState.Idle;
 
     private static LampArrayInterop.LampArrayStatusCallback OnLampArrayStatusChanged = new LampArrayInterop.LampArrayStatusCallback()
@@ -79,6 +80,7 @@ public class LampArrayDeviceManager implements AutoCloseable
 
                 int lampCount = lampArray.getLampCount();
                 LampArrayInterop.LampArrayPosition boundingBox = lampArray.getBoundingBox();
+                /*
                 System.out.println("LampArray Callback: count=" + s_lampArrays.size()
                         + ", kind=" + lampArray.getKind()
                         + ", lampCount=" + lampCount
@@ -89,33 +91,7 @@ public class LampArrayDeviceManager implements AutoCloseable
                         + ", dimensions=[x=" + boundingBox.xInMeters
                         + ", y=" + boundingBox.yInMeters
                         + ", z=" + boundingBox.zInMeters + "]");
-
-                /*
-                int[] indices = new int[lampCount];
-                int[] scanCodes = new int[lampCount];
-
-                LampArrayInterop.LampArrayColor colors[] = (LampArrayInterop.LampArrayColor[]) new LampArrayInterop.LampArrayColor().toArray(lampCount);
-
-                for (int i = 0; i < lampCount; i++)
-                {
-                    LampArrayInterop.ILampInfo lampInfo = lampArray.getLampInfo(i);
-                    indices[i] = i;
-
-                    if ((i % 2) == 0)
-                    {
-                        // scanCodes[i] = lampInfo.getScanCode();
-                        colors[i].set(LampArrayColorConstants.blue);
-                    }
-                    else
-                    {
-                        // scanCodes[i] = KeyboardScanCode.SC_INVALID.getCode();
-                        colors[i].set(LampArrayColorConstants.red);
-                    }
-                }
-
-                lampArray.setColorsForIndices(indices, colors);
-                // lampArray.setColorsForScanCodes(scanCodes, colors);
-                 // */
+                 */
 
                 LampArrayEffectContext foundLampArray = null;
                 for (LampArrayEffectContext attachedLampArray : s_lampArrays)
@@ -206,18 +182,13 @@ public class LampArrayDeviceManager implements AutoCloseable
                         effectContext.effect.stop();
                     }
 
-                    /*
-                    effectContext.effect = new BlinkEffect(
-                        effectContext.lampArray,
-                        LampArrayColorConstants.red,
-                        2000,
-                        2000,
-                        2000,
-                        2000,
-                        3);
-                    */
+                    MinecraftLightingEffectState effectState =
+                            (s_effectTypePreemptive != MinecraftLightingEffectState.None) ?
+                                    s_effectTypePreemptive :
+                                    s_effectType;
+
                     effectContext.effect = s_effectFactory.CreateEffect(
-                        s_effectType,
+                        effectState,
                         effectContext.lampArray);
                 }
 
@@ -244,6 +215,7 @@ public class LampArrayDeviceManager implements AutoCloseable
                 }
             }
 
+            s_effectTypePreemptive = MinecraftLightingEffectState.None;
             s_effectTypeDirty = false;
         }
         catch (Exception e)
@@ -293,7 +265,15 @@ public class LampArrayDeviceManager implements AutoCloseable
     {
         try
         {
-            s_effectType = effectType;
+            if (effectType == MinecraftLightingEffectState.Damage)
+            {
+                s_effectTypePreemptive = effectType;
+            }
+            else
+            {
+                s_effectType = effectType;
+            }
+
             s_effectTypeDirty = true;
 
             scheduleEffectUpdate(0);

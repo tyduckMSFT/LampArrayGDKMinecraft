@@ -34,6 +34,7 @@ public final class LampArrayMod {
     private class GameState
     {
         public boolean playerInWater = false;
+        public boolean playerIsAlive = true;
     };
 
     private final GameState m_gameState = new GameState();
@@ -86,7 +87,7 @@ public final class LampArrayMod {
         var player = Minecraft.getInstance().player;
         if ((player != null) && (event.getEntity().getName().equals(player.getName())))
         {
-            System.out.println("Ouch! That hurt me!");
+            m_deviceManager.updateEffectType(MinecraftLightingEffectState.Damage);
         }
     }
 
@@ -96,6 +97,7 @@ public final class LampArrayMod {
         var player = Minecraft.getInstance().player;
         if ((player != null) && (event.getEntity().getName().equals(player.getName())))
         {
+            m_gameState.playerIsAlive = false;
             m_deviceManager.updateEffectType(MinecraftLightingEffectState.Death);
         }
     }
@@ -103,6 +105,7 @@ public final class LampArrayMod {
     @SubscribeEvent
     public void onPlayerClone(PlayerEvent.Clone event)
     {
+        m_gameState.playerIsAlive = true;
         if (event.isWasDeath())
         {
             m_deviceManager.updateEffectType(MinecraftLightingEffectState.Biome);
@@ -112,22 +115,19 @@ public final class LampArrayMod {
     @SubscribeEvent
     public void handlePlayerTickEvent(TickEvent.PlayerTickEvent event) throws IOException
     {
-        if (event.player.isInWater())
-        {
-            if (!m_gameState.playerInWater)
-            {
-                m_gameState.playerInWater = true;
-                System.out.println("Entered the water.");
-                m_deviceManager.updateEffectType(MinecraftLightingEffectState.Underwater);
-            }
-        }
-        else
-        {
-            if (m_gameState.playerInWater)
-            {
-                m_gameState.playerInWater = false;
-                System.out.println("Left the water.");
-                m_deviceManager.updateEffectType(MinecraftLightingEffectState.Biome);
+        if (m_gameState.playerIsAlive) {
+            if (event.player.isInWater()) {
+                if (!m_gameState.playerInWater) {
+                    m_gameState.playerInWater = true;
+                    System.out.println("Entered the water.");
+                    m_deviceManager.updateEffectType(MinecraftLightingEffectState.Underwater);
+                }
+            } else {
+                if (m_gameState.playerInWater) {
+                    m_gameState.playerInWater = false;
+                    System.out.println("Left the water.");
+                    m_deviceManager.updateEffectType(MinecraftLightingEffectState.Biome);
+                }
             }
         }
     }
