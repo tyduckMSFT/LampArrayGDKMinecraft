@@ -13,7 +13,7 @@ public class LampArrayEffectFactory
                     new BiomeStaticEffect(
                             lampArray,
                             LampArrayColorConstants.green,
-                            LampArrayColorConstants.red,
+                            LampArrayColorConstants.lightBlue,
                             LampArrayColorConstants.white,
                             Long.MAX_VALUE);
             case Damage -> new BlinkEffect(
